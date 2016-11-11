@@ -1,0 +1,15 @@
+{
+  "domain": "http://someaddr.net",
+  "prefixpath": "/var/www/html",
+  "episodePrefix": "episode_",
+  "dl_list": [
+    {
+      "downlink": "",
+      "domainpath": ""
+    },
+    {
+      "downlink": "",
+      "domainpath": ""
+    }
+  ]
+}

@@ -10,21 +10,20 @@ import datetime
 import subprocess
 from mutagen.mp3 import MP3
 from xml.etree import ElementTree as ET
+import json
 
 print('0. Чтение dlconfig')
-config = open("dlconfig", "r")
-clines = [line.rstrip('\n') for line in config]
-# TODO: добавить в конфиг и перевести конфиг в JSON
-domain = 'http://someaddr.net'
-prefixpath = '/var/www/html'
-episodePrefix = 'episode_'
+with open('config.json') as f:
+    config = json.load(f)
+domain = config['domain'] # 'http://someaddr.net'
+prefixpath = config['prefixpath'] # '/var/www/html'
+episodePrefix = config['episodePrefix'] # 'episode_'
+clines = config['dl_list']
 
 print('1. Бежим по каждым двум строкам из dlconfig')
-for ln in range(len(clines)):
-    if ((ln+1)%2)==0:
-        continue
-    downlink = clines[ln]
-    domainpath = clines[ln+1].strip('/')
+for ln in clines:
+    downlink = ln['downlink']
+    domainpath = ln['domainpath']
     storpath = prefixpath + '/' + (domainpath)
 #    epName = 'episode' + epNum + '.mp3'
     symlinks = storpath + '/symlinks'

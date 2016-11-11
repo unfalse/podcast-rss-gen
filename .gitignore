@@ -1,4 +1,4 @@
 .idea
 ymls
 *.pyc
-dlconfig
+config.json
