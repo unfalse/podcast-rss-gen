@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
+    <channel>
+        <title>-</title>
+        <link>-</link>
+        <language>ru-ru</language>
+        <copyright>rssgen.py (c), unfalse</copyright>
+        <itunes:subtitle>Podcast downloaded by python script.</itunes:subtitle>
+        <itunes:author>rssgen.py</itunes:author>
+        <itunes:summary>Verbose description of the podcast.</itunes:summary>
+        <description>Verbose description of the podcast.</description>
+        <itunes:owner>
+            <itunes:name>unfalse</itunes:name>
+            <itunes:email>podcast@rssgendomain.com</itunes:email>
+        </itunes:owner>
+        <itunes:image href=""/>
+        <itunes:category text="Education">
+            <itunes:category text="Higher Education"/>
+        </itunes:category>
+        <itunes:explicit>no</itunes:explicit>
+        <item>
+            <title>-</title>
+            <pubDate>-</pubDate>
+            <guid>-</guid>
+            <author>-</author>
+            <enclosure url="" length="" type="audio/mpeg"/>
+        </item>
+
+
+    </channel>
+</rss>
