@@ -12,32 +12,34 @@ from mutagen.mp3 import MP3
 from xml.etree import ElementTree as ET
 import json
 
-print('0. Чтение dlconfig')
+print('0. Чтение config.json')
 with open('config.json') as f:
     config = json.load(f)
-domain = config['domain'] # 'http://someaddr.net'
-prefixpath = config['prefixpath'] # '/var/www/html'
-episodePrefix = config['episodePrefix'] # 'episode_'
+domain = config['domain'] if config.get('domain', False) else 'http://someaddr.net'
+prefixpath = config['prefixpath'] if config.get('prefixpath', False) else '~/rssgen'
+prefixpath = os.path.expanduser(prefixpath)
+episodePrefix = config['episodePrefix'] if config.get('episodePrefix', False) else 'episode_'
 clines = config['dl_list']
 
 print('1. Бежим по каждым двум строкам из dlconfig')
 for ln in clines:
     downlink = ln['downlink']
     domainpath = ln['domainpath']
-    storpath = prefixpath + '/' + (domainpath)
+    storpath = prefixpath + '/' + domainpath # /var/www/html/pod/blabla
 #    epName = 'episode' + epNum + '.mp3'
     symlinks = storpath + '/symlinks'
 
     print('2. Создание папки для mp3 и для мягких ссылок')
-    if os.path.isdir(storpath)!=True:
-        os.mkdir(storpath)
-    if os.path.isdir(symlinks)!=True:
-        os.mkdir(symlinks)
+    if not os.path.isdir(storpath):
+        os.makedirs(storpath)
+    if not os.path.isdir(symlinks):
+        os.makedirs(symlinks)
 
     print('3. Cкачивание файлов')
-# TODO: требуется sudo! :(
 # subprocess.call(["youtube-dl", "-U", "--verbose"])
-    downexec = "youtube-dl -q -o '"+storpath+"/%(playlist_index)s-%(title)s-%(id)s.%(ext)s' -x --audio-format \"mp3\" '"+downlink+"'" # , "--verbose"]
+#     downexec = "youtube-dl -q -o '"+storpath+"/%(playlist_index)s-%(title)s-%(id)s.%(ext)s' -x --audio-format \"mp3\" '"+downlink+"'" # , "--verbose"]
+    downexec = "youtube-dl -q -o '{}/%(playlist_index)s-%(title)s-%(id)s.%(ext)s' -x --audio-format \"mp3\" '{}'".\
+        format(storpath, downlink)
 
 #    downexec = ["youtube-dl", "-q", "-o", "'"+storpath+"/%(playlist_index)s-%(title)s-%(id)s.%(ext)s'", "-x", "--audio-format \"mp3\"", "'"+downlink+"'"] # , "--verbose"]
 #    downexec = ["youtube-dl", "-q -o '"+storpath+"/%(playlist_index)s-%(title)s-%(id)s.%(ext)s' -x --audio-format \"mp3\" '"+downlink+"'"]
@@ -48,10 +50,8 @@ for ln in clines:
     print('4. Создание мягких ссылок на файлы')
 # NOTICE: директория с мягкими ссылками не очищается полностью, удаляются только файлы с совпавшими номерами
     mp3s = os.listdir(storpath)
-    for m in range(len(mp3s)):
-        mp3file = mp3s[m]
-        fnameext = os.path.splitext(mp3file)
-        if fnameext[1] != '.mp3':
+    for mp3file in mp3s:
+        if not mp3file.endswith('.mp3'):
             continue
         afterNum = mp3file.find('-')
         episodeNumber = mp3file[0:afterNum].lstrip('0')
@@ -87,9 +87,8 @@ for ln in clines:
     # TODO: сделать сортировку файлов-ссылок по номеру эпизода! Т.е. сортировку массива строк.
 
     numsArr = []
-    for s in range(0, len(syms)):
-        symfile = syms[s]
-        if symfile[0:8]!="episode_":
+    for symfile in syms:
+        if not symfile.startswith('episode_'):
             continue
         numsArr.append(int(symfile[8:-4]))
 
@@ -102,8 +101,8 @@ for ln in clines:
     xml_item = xml_channel.find('item')
     xml_channel.remove(xml_item)
 
-    for s in range(0, len(numsArr)):
-        symname = episodePrefix + str(numsArr[s]) + '.mp3'
+    for s in numsArr:
+        symname = '{}{}.mp3'.format(episodePrefix, s)
         fullpath = symlinks + '/' + symname
         audio = MP3(fullpath)
         filesize = os.path.getsize(fullpath)
@@ -111,18 +110,18 @@ for ln in clines:
 # Нужно как-то получить, куда указывает ссылка
 
         xml_item = ET.Element('item')
-        subE = ET.SubElement(xml_item, 'title')
-        subE.text = realpath[len(storpath)+1:-4]
-        subE = ET.SubElement(xml_item, 'pubDate')
-        subE.text = dateVal
-        subE = ET.SubElement(xml_item, 'guid')
-        subE.text = str(s + 1)
-        subE = ET.SubElement(xml_item, 'author')
-        subE.text = 'rssgen.py'
-        subE = ET.SubElement(xml_item, 'enclosure')
-        subE.set('type', 'audio/mpeg')
-        subE.set('length', str(filesize))
-        subE.set('url', '{}/{}/symlinks/{}'.format(domain, domainpath, symname))
+        sub = ET.SubElement(xml_item, 'title')
+        sub.text = realpath[len(storpath)+1:-4]
+        sub = ET.SubElement(xml_item, 'pubDate')
+        sub.text = dateVal
+        sub = ET.SubElement(xml_item, 'guid')
+        sub.text = str(s + 1)
+        sub = ET.SubElement(xml_item, 'author')
+        sub.text = 'rssgen.py'
+        sub = ET.SubElement(xml_item, 'enclosure')
+        sub.set('type', 'audio/mpeg')
+        sub.set('length', str(filesize))
+        sub.set('url', '{}/{}/symlinks/{}'.format(domain, domainpath, symname))
 
         xml_channel.append(xml_item)
 
